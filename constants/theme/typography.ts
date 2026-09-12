@@ -11,6 +11,8 @@ export const fontSizes = {
   xl: 20,
   xxl: 24,
   xxxl: 32,
+  /** Arabic script needs more size than Latin to stay legible. */
+  arabic: 25,
 } as const;
 
 export const lineHeights = {
@@ -21,6 +23,8 @@ export const lineHeights = {
   xl: 28,
   xxl: 32,
   xxxl: 40,
+  /** Generous, so Arabic diacritics are never clipped. */
+  arabic: 48,
 } as const;
 
 export const fontWeights = {
@@ -66,6 +70,19 @@ export const textStyles = {
     lineHeight: lineHeights.xs,
     fontWeight: fontWeights.medium,
   },
+  /** Qur'anic text. Pair with `writingDirection: 'rtl'`. */
+  ayah: {
+    fontSize: fontSizes.arabic,
+    lineHeight: lineHeights.arabic,
+    fontWeight: fontWeights.regular,
+  },
+} as const;
+
+/** Wide tracking for the small uppercase section labels. */
+export const letterSpacings = {
+  tight: 0.5,
+  wide: 2,
+  widest: 4,
 } as const;
 
 export type TextStyleTokens = typeof textStyles;

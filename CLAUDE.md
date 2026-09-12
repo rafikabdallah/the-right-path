@@ -1,3 +1,12 @@
+
+## Git Rules — IMPORTANT
+- NEVER run `git commit`, `git push`, `git add`, `git reset`, `git rebase`, 
+  or any git command that changes repo state or history.
+- `git status` and `git diff` are fine for checking things.
+- The developer (me) handles all staging, committing, and pushing manually.
+- If changes are ready, just tell me what changed and that it's ready — 
+  do not commit or push it yourself.
+
 # The Right Path (الطريق المستقيم)
 
 A Muslim life-management mobile app built around four pillars: **Spiritual 🕌, Mind 🧠, Body 💪, Character ❤️**.
@@ -47,18 +56,28 @@ Exercise, Sleep, Nutrition, Fitness, Recovery
 **Character ❤️:**
 Discipline, Patience, Emotions, Family, Relationships, Responsibility, Self-control, Good manners
 
-Spiritual is the highest-priority pillar and gets the most design attention (its Quick Review section, full card set). Mind, Body, and Character use the same reusable components and interaction pattern but don't need deeper design than Spiritual at this stage.
+Spiritual is the highest-priority pillar and is the only one being designed right now. Mind, Body and Character are **navigation destinations only** — minimal "Coming soon" placeholder screens. Do not build their pages, dashboards, features, subsections, or content until explicitly asked.
+
+**UI V1 shows only the first six Spiritual sections** — Salah, Adhkar & Du'a, Quran, Islamic Knowledge, Fasting, Sadaqah & Charity. Character & Sins, Family & People, Mosque & Community and Tawbah & Self-Reflection are deliberately postponed so the first screen stays clean; how they get integrated is a later product decision.
 
 ## Navigation & transition
 
-Bottom navigation has four permanent tabs — Spiritual, Mind, Body, Character — each with a Lucide icon, Spiritual always the default/opening tab. Tapping a different pillar tab plays a **pillar-switch transition**: the target pillar's accent color expands outward from the tapped nav item (as a circle growing from the tap point) until it covers the screen, the new screen's content swaps in underneath while covered, then the color fades out to reveal it. Duration ~250–500ms total, one smooth easing curve — no bounce, no flashiness. Tapping a card within a pillar pushes a lightweight in-stack detail screen (not this full-screen transition); cards get only a subtle press/scale response.
+Navigation is **four floating bubbles**, not a bottom tab bar. This is a hard requirement: no rectangular bar, no container, no background strip. Four circular pillar nodes float near the bottom of the screen — Spiritual, Mind, Body, Character, each a Lucide icon, Spiritual always the default/opening tab. Screen content scrolls underneath them (screens reserve room via `usePillarNavClearance()`).
+
+The active bubble is obvious: larger, purple-tinted fill, purple border, purple icon, soft halo. Inactive bubbles stay visible but understated — smaller, dark surface, muted icon. The halo is drawn as translucent discs, not a `shadowColor` glow, because Android renders elevation shadows black.
+
+Tapping another pillar plays the **pillar-switch transition**: the purple accent expands out of the pressed bubble as a circle until it covers the screen, the route swaps underneath while hidden, then the color fades to reveal the new pillar — as if the selected pillar became the environment. ~420ms, one easing curve (`Easing.out(Easing.cubic)`) — smooth and restrained, never explosive or game-like. Tapping a Spiritual tile pushes a lightweight in-stack placeholder screen instead (no full-screen sweep); tiles get only a subtle press/scale response.
 
 ## Visual identity
 
+Goal: **premium + calm + modern + slightly futuristic.**
+
 - Near-black background, white/near-white primary text.
-- Purple is the app's single shared brand accent (nav active state, primary actions, focus/glow) — used **selectively**, not as a dominant color across every screen.
-- Each pillar additionally has its own accent color (used for that pillar's icon tint and its transition sweep) so the four sections stay visually distinct without leaning on purple everywhere.
-- Dark purple-tinted surfaces for elevated cards, subtle low-contrast borders, soft glow (colored shadow, not harsh drop shadow), consistently rounded corners.
+- Purple is the app's single accent — active nav bubble, the transition sweep, section icons, and the Quick Review button. Use it **selectively**: no giant gradients, no neon, no screen-wide purple.
+- The Quick Review button is the only element with a visible purple fill; that's what makes it read as the screen's primary action.
+- Each pillar also has a quiet identity tint (`colors.pillarSpiritual` etc.), used only on its own placeholder header. Nav and transitions stay purple.
+- Dark surfaces for elevated cards, subtle low-contrast borders, generously rounded corners, restrained depth.
+- Animation communicates interaction, not decoration: bubble selection, pillar transition, press feedback, and one subtle staggered card entrance. Don't animate everything.
 - No heavy Islamic decoration or emoji inside the UI itself — pillar emoji (🕌🧠💪❤️) are for docs/specs like this file, not for rendering in-app.
 
 ## Path aliases
@@ -68,8 +87,34 @@ Bottom navigation has four permanent tabs — Spiritual, Mind, Body, Character �
 ## Project structure
 
 ```
-app/                  Expo Router routes (screens). _layout.tsx = root layout.
-constants/theme/      Centralized design tokens (colors, spacing, radii, typography).
+app/
+  _layout.tsx              Root layout: GestureHandlerRootView + SafeAreaProvider + Stack.
+  (tabs)/
+    _layout.tsx             Tabs navigator with the floating bubble nav as its custom
+                             tabBar; owns the pillar-switch transition shared values.
+    spiritual/
+      _layout.tsx            Re-exports components/navigation/PillarStackLayout.
+      index.tsx               Renders <SpiritualScreen />.
+      [section].tsx            Renders <SectionPlaceholderScreen /> (tiles + Quick Review).
+      salah.tsx                Renders <SalahScreen />. A static segment sorts before the
+                                dynamic one, so only Salah escapes the placeholder.
+    mind.tsx | body.tsx | character.tsx
+                             One-line placeholder routes. No folders, no stacks, no content.
+components/
+  navigation/              PillarBubble, PillarNavigation (floating nav + clearance hook),
+                            PillarStackLayout.
+  ui/                      Shared primitives: ScreenHeader, QuickReviewButton,
+                            SpiritualSectionCard, SpiritualScreen, PillarPlaceholderScreen,
+                            SectionPlaceholderScreen, BottomSheet, OptionGroup.
+  salah/                   The Salah section: SalahScreen, SalahHeader, WeeklyOverview,
+                            SectionLabel, PrayerRow, SecondarySection, PrayerDetailSheet.
+constants/
+  theme/                   Design tokens (colors, spacing, radii, typography, shadows, animation).
+  pillars.ts               UI-layer config: icon + accent color per pillar and Spiritual section.
+data/
+  types.ts                 PillarId.
+  spiritual.ts             Mock content: the six V1 sections + Quick Review copy (no React).
+  salah.ts                 Mock content + initial state for the Salah screen (no React).
 assets/               Icons, splash images.
 babel.config.js       babel-preset-expo + reanimated/worklets plugin (last).
 metro.config.js       Default Expo Metro config.
@@ -77,12 +122,12 @@ app.json              Expo config: name "The Right Path", slug "the-right-path",
                        scheme "therightpath", Arabic display name in `extra.displayNameArabic`.
 ```
 
-As features are added, prefer grouping by pillar/domain under `app/` (e.g. `app/(spiritual)/`, `app/(mind)/`, `app/(body)/`, `app/(character)/`) using Expo Router route groups, and colocate feature-specific components under a top-level `components/` or `features/` directory — establish the exact convention when the first real feature is built, then document it here.
+**Rule:** route files under `app/` stay thin (one line rendering a component); real screen logic lives in `components/`, and content lives in `data/` — never inline mock data or duplicate markup in route files.
 
 ## Phase plan
 
 1. **Phase 1 — Technical foundation** (done): Expo/TypeScript/Router/Reanimated/Lucide setup, no UI.
-2. **Phase 2 — UI V1** (current): Bottom nav + pillar-switch transition, Spiritual page (Quick Review + all 10 subsections), Mind/Body/Character pages (cards, same pattern, less design depth), all on mock data, placeholder detail screens only.
+2. **Phase 2 — UI V1** (current): the Spiritual home screen (header, Quick Review button, six section tiles) plus the floating four-pillar bubble navigation and its transition. Mind/Body/Character are placeholders only. Static mock data, no real functionality. Build incrementally — don't try to "finish" the Spiritual pillar.
 3. **Phase 3 — Device testing**: verify Phase 2 on real Android (primary) and iOS (secondary) devices/emulators.
 4. **Phase 4 — Functionality**: wire up real tracking/logic per subsection, still no backend unless separately decided.
 

@@ -1,42 +1,25 @@
 import type { ComponentType } from 'react';
 import {
-  Anchor,
-  Apple,
-  Activity,
-  Book,
   BookOpen,
   Brain,
-  Clock,
   Compass,
-  Drama,
   Dumbbell,
   GraduationCap,
+  HandCoins,
   HandHeart,
-  Handshake,
-  HeartHandshake,
-  HeartPulse,
-  Hourglass,
-  Landmark,
-  Lightbulb,
-  MessageCircleHeart,
+  Heart,
   Moon,
-  Puzzle,
-  RotateCcw,
-  Scale,
-  ShieldCheck,
+  MoonStar,
   Sparkles,
-  Target,
-  Users,
-  Wrench,
 } from 'lucide-react-native';
 
 import { colors } from '@/constants/theme';
 import type { PillarId } from '@/data/types';
 
 /**
- * UI-layer config for pillars and subsections: icon component + accent
- * color per id. Kept separate from `data/` (pure content) so the content
- * shapes stay swappable for real data without pulling React along.
+ * UI-layer config: which icon and accent color represents each pillar and
+ * each Spiritual section. Kept out of `data/` so the content files stay
+ * pure and swappable for real data later.
  */
 export type IconComponent = ComponentType<{
   color?: string;
@@ -48,14 +31,15 @@ export interface PillarConfig {
   id: PillarId;
   label: string;
   icon: IconComponent;
+  /** Quiet identity tint for this pillar's own screen. Nav/transition use purple. */
   color: string;
 }
 
 export const pillars: PillarConfig[] = [
-  { id: 'spiritual', label: 'Spiritual', icon: Compass, color: colors.pillarSpiritual },
+  { id: 'spiritual', label: 'Spiritual', icon: MoonStar, color: colors.pillarSpiritual },
   { id: 'mind', label: 'Mind', icon: Brain, color: colors.pillarMind },
   { id: 'body', label: 'Body', icon: Dumbbell, color: colors.pillarBody },
-  { id: 'character', label: 'Character', icon: HeartHandshake, color: colors.pillarCharacter },
+  { id: 'character', label: 'Character', icon: Heart, color: colors.pillarCharacter },
 ];
 
 export const pillarById: Record<PillarId, PillarConfig> = {
@@ -65,42 +49,13 @@ export const pillarById: Record<PillarId, PillarConfig> = {
   character: pillars[3],
 };
 
-export const subsectionIcons: Record<PillarId, Record<string, IconComponent>> = {
-  spiritual: {
-    salah: Clock,
-    'adhkar-dua': MessageCircleHeart,
-    quran: BookOpen,
-    'islamic-knowledge': GraduationCap,
-    fasting: Moon,
-    'sadaqah-charity': HandHeart,
-    'character-sins': Scale,
-    'family-people': Users,
-    'mosque-community': Landmark,
-    'tawbah-reflection': RotateCcw,
-  },
-  mind: {
-    study: BookOpen,
-    reading: Book,
-    learning: Lightbulb,
-    'critical-thinking': Puzzle,
-    skills: Wrench,
-    reflection: RotateCcw,
-  },
-  body: {
-    exercise: Dumbbell,
-    sleep: Moon,
-    nutrition: Apple,
-    fitness: Activity,
-    recovery: HeartPulse,
-  },
-  character: {
-    discipline: Target,
-    patience: Hourglass,
-    emotions: Drama,
-    family: Users,
-    relationships: Handshake,
-    responsibility: ShieldCheck,
-    'self-control': Anchor,
-    'good-manners': Sparkles,
-  },
+/** Icons for the six Spiritual sections shown in UI V1. */
+export const spiritualSectionIcons: Record<string, IconComponent> = {
+  salah: Compass,
+  'adhkar-dua': HandHeart,
+  quran: BookOpen,
+  'islamic-knowledge': GraduationCap,
+  fasting: Moon,
+  'sadaqah-charity': HandCoins,
+  'quick-review': Sparkles,
 };

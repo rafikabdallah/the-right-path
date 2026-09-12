@@ -12,6 +12,7 @@ export {
   fontSizes,
   lineHeights,
   fontWeights,
+  letterSpacings,
   textStyles,
   type TextStyleTokens,
 } from './typography';

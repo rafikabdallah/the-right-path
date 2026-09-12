@@ -29,11 +29,17 @@ const palette = {
   zinc100: '#E9E9ED',
 
   // Purple — the single shared brand accent, used selectively.
-  purple400: '#A78BFA',
+  // purple400 is deliberately luminous: it should read as a glowing object
+  // against the near-black background, not as a flat tint.
+  purple400: '#B292FF',
   purple500: '#8B5CF6',
   purple600: '#7C3AED',
   purpleSurface: '#1B1730',
-  purpleGlow: 'rgba(139, 92, 246, 0.35)',
+  purpleGlow: 'rgba(178, 146, 255, 0.35)',
+  // Translucent discs layered behind the active nav bubble. Android can't
+  // render colored shadows, so the glow is drawn, not shadowed.
+  purpleHaloInner: 'rgba(178, 146, 255, 0.22)',
+  purpleHaloOuter: 'rgba(178, 146, 255, 0.10)',
 
   // One distinct accent per pillar.
   emerald400: '#34D399',
@@ -42,6 +48,13 @@ const palette = {
   rose400: '#FB7185',
 
   red500: '#EF4444',
+
+  /** A cooler, deeper surface for the night-prayer section. */
+  night900: '#10111C',
+  night700: '#242640',
+
+  /** Dim behind a modal sheet. */
+  scrim: 'rgba(0, 0, 0, 0.6)',
 } as const;
 
 export interface ColorTokens {
@@ -49,8 +62,11 @@ export interface ColorTokens {
   surface: string;
   surfaceAlt: string;
   surfacePurple: string;
+  /** Cooler, deeper surface used only by the night-prayer section. */
+  surfaceNight: string;
   border: string;
   borderStrong: string;
+  borderNight: string;
 
   textPrimary: string;
   textSecondary: string;
@@ -60,10 +76,18 @@ export interface ColorTokens {
   primary: string;
   primaryPressed: string;
   primaryGlow: string;
+  primaryHaloInner: string;
+  primaryHaloOuter: string;
+  /** For a surface that should read through to whatever is behind it. */
+  transparent: string;
+  /** Dim behind a modal sheet. */
+  backdrop: string;
 
   danger: string;
 
-  // Four pillar accents — each pillar's icon tint and transition-sweep color.
+  // Four pillar accents — a quiet identity tint per pillar (placeholder
+  // screen headers today). Nav active state and the transition sweep use
+  // the shared purple accent, not these.
   pillarSpiritual: string;
   pillarMind: string;
   pillarBody: string;
@@ -75,8 +99,10 @@ export const colors: ColorTokens = {
   surface: palette.zinc900,
   surfaceAlt: palette.zinc850,
   surfacePurple: palette.purpleSurface,
+  surfaceNight: palette.night900,
   border: palette.zinc700,
   borderStrong: palette.zinc600,
+  borderNight: palette.night700,
 
   textPrimary: palette.white,
   textSecondary: palette.zinc300,
@@ -86,6 +112,10 @@ export const colors: ColorTokens = {
   primary: palette.purple400,
   primaryPressed: palette.purple600,
   primaryGlow: palette.purpleGlow,
+  primaryHaloInner: palette.purpleHaloInner,
+  primaryHaloOuter: palette.purpleHaloOuter,
+  transparent: 'transparent',
+  backdrop: palette.scrim,
 
   danger: palette.red500,
 
