@@ -19,9 +19,11 @@ import { animation, colors, radii, spacing } from '@/constants/theme';
 import { pillarById } from '@/constants/pillars';
 import type { PillarId } from '@/data/types';
 
+import { NAV_FADE_HEIGHT, NavBackdrop } from '@/components/ui/NavBackdrop';
+
 import { PILLAR_BUBBLE_AREA, PILLAR_BUBBLE_SIZE, PillarBubble } from './PillarBubble';
 
-const HALO_INNER = PILLAR_BUBBLE_SIZE + 14;
+const HALO_INNER = PILLAR_BUBBLE_SIZE + 12;
 
 interface Center {
   x: number;
@@ -53,8 +55,10 @@ export function PillarNavigation({ state, navigation, insets }: BottomTabBarProp
   const activeCenter = centers[state.index];
 
   const handleLayout = useCallback((index: number, event: LayoutChangeEvent) => {
-    const { x, y, width, height } = event.nativeEvent.layout;
-    const next = { x: x + width / 2, y: y + height / 2 };
+    const { x, y, width } = event.nativeEvent.layout;
+    // Anchor to the centre of the circle row, not the slot: the slot also
+    // contains the label beneath it, so its own centre sits too low.
+    const next = { x: x + width / 2, y: y + PILLAR_BUBBLE_AREA / 2 };
 
     setCenters((previous) => {
       const current = previous[index];
@@ -101,46 +105,51 @@ export function PillarNavigation({ state, navigation, insets }: BottomTabBarProp
   }));
 
   return (
-    <View
-      style={[styles.container, { paddingBottom: insets.bottom + spacing.md }]}
-      pointerEvents="box-none"
-    >
-      {/* Rendered before the bubbles so it paints behind their icons. */}
-      <Animated.View pointerEvents="none" style={[styles.indicator, indicatorStyle]}>
-        <View style={styles.haloOuter} />
-        <View style={styles.haloInner} />
-        <View style={styles.core} />
-      </Animated.View>
+    <View style={styles.root} pointerEvents="box-none">
+      {/* Fade first, so scrolling content dies out before the dock. */}
+      <NavBackdrop />
 
-      {state.routes.map((route, index) => {
-        const pillar = pillarById[route.name as PillarId];
-        if (!pillar) return null;
+      <View
+        style={[styles.dock, { paddingBottom: insets.bottom + spacing.sm }]}
+        pointerEvents="box-none"
+      >
+        {/* Rendered before the bubbles so it paints behind their icons. */}
+        <Animated.View pointerEvents="none" style={[styles.indicator, indicatorStyle]}>
+          <View style={styles.haloOuter} />
+          <View style={styles.haloInner} />
+          <View style={styles.core} />
+        </Animated.View>
 
-        const isActive = state.index === index;
+        {state.routes.map((route, index) => {
+          const pillar = pillarById[route.name as PillarId];
+          if (!pillar) return null;
 
-        const handlePress = (event: GestureResponderEvent) => {
-          if (isActive) return;
+          const isActive = state.index === index;
 
-          const tabPressEvent = navigation.emit({
-            type: 'tabPress',
-            target: route.key,
-            canPreventDefault: true,
-          });
-          if (tabPressEvent.defaultPrevented) return;
+          const handlePress = (event: GestureResponderEvent) => {
+            if (isActive) return;
 
-          navigation.navigate(route.name);
-        };
+            const tabPressEvent = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
+            if (tabPressEvent.defaultPrevented) return;
 
-        return (
-          <PillarBubble
-            key={route.key}
-            pillar={pillar}
-            active={isActive}
-            onPress={handlePress}
-            onLayout={(event) => handleLayout(index, event)}
-          />
-        );
-      })}
+            navigation.navigate(route.name);
+          };
+
+          return (
+            <PillarBubble
+              key={route.key}
+              pillar={pillar}
+              active={isActive}
+              onPress={handlePress}
+              onLayout={(event) => handleLayout(index, event)}
+            />
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -152,17 +161,25 @@ export function PillarNavigation({ state, navigation, insets }: BottomTabBarProp
  */
 export function usePillarNavClearance() {
   const insets = useSafeAreaInsets();
-  return PILLAR_BUBBLE_AREA + insets.bottom + spacing.xl;
+  // Dock + safe area + the fade above it, so the last card clears the whole
+  // isolation zone rather than stopping inside it.
+  return PILLAR_BUBBLE_AREA + insets.bottom + NAV_FADE_HEIGHT + spacing.md;
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
+  },
+  dock: {
     flexDirection: 'row',
     alignItems: 'center',
+    // Continues the fade to the screen edge so nothing shows through behind
+    // the bubbles. Near-opaque, but the soft gradient above keeps the whole
+    // zone reading as part of the screen rather than as a bar.
+    backgroundColor: colors.navSurface,
     // Deliberately no horizontal padding: the bubbles' measured `x` values
     // and the absolutely-positioned indicator must share one coordinate
     // origin, and padding offsets them differently. Equal flex slots give
@@ -191,13 +208,13 @@ const styles = StyleSheet.create({
     borderRadius: radii.full,
     backgroundColor: colors.primaryHaloInner,
   },
+  // Luminous amethyst fill, per DESIGN.md's active indicator — a solid
+  // glowing capsule, not a tinted outline.
   core: {
     position: 'absolute',
     width: PILLAR_BUBBLE_SIZE,
     height: PILLAR_BUBBLE_SIZE,
     borderRadius: radii.full,
-    backgroundColor: colors.surfacePurple,
-    borderWidth: 1,
-    borderColor: colors.primary,
+    backgroundColor: colors.primaryContainer,
   },
 });

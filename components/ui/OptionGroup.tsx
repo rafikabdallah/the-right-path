@@ -45,7 +45,7 @@ export function OptionGroup<T extends string>({
             >
               {Icon ? (
                 <Icon
-                  color={isSelected ? colors.primary : colors.textMuted}
+                  color={isSelected ? colors.textOnAccent : colors.textMuted}
                   size={15}
                   strokeWidth={2}
                 />
@@ -63,38 +63,42 @@ export function OptionGroup<T extends string>({
 
 const styles = StyleSheet.create({
   container: {
-    gap: spacing.sm,
+    alignItems: 'center',
+    gap: spacing.md,
   },
   label: {
     ...textStyles.label,
     color: colors.textMuted,
     letterSpacing: letterSpacings.wide,
+    textAlign: 'center',
   },
   options: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'center',
     gap: spacing.sm,
   },
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
     borderRadius: radii.full,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surfaceAlt,
   },
   pillSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.surfacePurple,
+    borderColor: colors.borderPurple,
+    backgroundColor: colors.surfacePurpleRaised,
   },
   pillLabel: {
     ...textStyles.caption,
     color: colors.textSecondary,
   },
   pillLabelSelected: {
-    color: colors.textPrimary,
+    color: colors.textOnAccent,
+    fontWeight: '600',
   },
 });

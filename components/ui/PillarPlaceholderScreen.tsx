@@ -7,6 +7,7 @@ import { pillarById } from '@/constants/pillars';
 import { animation, colors, spacing } from '@/constants/theme';
 import type { PillarId } from '@/data/types';
 
+import { AmbientBackdrop } from './AmbientBackdrop';
 import { ScreenHeader } from './ScreenHeader';
 
 interface PillarPlaceholderScreenProps {
@@ -24,25 +25,32 @@ export function PillarPlaceholderScreen({ pillarId }: PillarPlaceholderScreenPro
   const navClearance = usePillarNavClearance();
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <View style={[styles.content, { paddingBottom: navClearance }]}>
-        <Animated.View entering={FadeIn.duration(animation.durationEntrance)}>
-          <ScreenHeader
-            title={pillar.label}
-            icon={pillar.icon}
-            accentColor={pillar.color}
-            subtitle="Coming soon"
-          />
-        </Animated.View>
-      </View>
-    </SafeAreaView>
+    <View style={styles.root}>
+      <AmbientBackdrop />
+
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <View style={[styles.content, { paddingBottom: navClearance }]}>
+          <Animated.View entering={FadeIn.duration(animation.durationEntrance)}>
+            <ScreenHeader
+              title={pillar.label}
+              icon={pillar.icon}
+              accentColor={pillar.color}
+              subtitle="Coming soon"
+            />
+          </Animated.View>
+        </View>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  root: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  safeArea: {
+    flex: 1,
   },
   content: {
     flex: 1,

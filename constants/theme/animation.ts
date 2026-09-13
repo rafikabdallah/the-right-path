@@ -19,6 +19,20 @@ export const animation = {
   /** Card entrance fade-in, plus the per-card stagger. */
   durationEntrance: 320,
   entranceStagger: 45,
+  /**
+   * Breathing glow on the current prayer. Slow and shallow on purpose —
+   * it should register as 'alive', never as a pulse or a flash.
+   */
+  breathDuration: 2800,
+  breathOpacityFrom: 0.45,
+  breathOpacityTo: 1,
+  /**
+   * Ambient background orbs. Very slow drift (10-20s cycles) so the
+   * atmosphere moves without the eye tracking it.
+   */
+  ambientDurations: [17000, 21000, 14000],
+  ambientDrift: 42,
+  ambientScaleTo: 1.12,
 } as const;
 
 export type AnimationTokens = typeof animation;

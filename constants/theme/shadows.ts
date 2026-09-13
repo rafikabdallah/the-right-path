@@ -31,11 +31,19 @@ function shadow(color: string, opacity: number, radius: number, elevation: numbe
 
 const black = '#000000';
 
+/**
+ * Elevation tiers from DESIGN.md. Note that only the black shadows render
+ * on Android — a colored `shadowColor` is ignored there, so `glowPurple` is
+ * an iOS enhancement and any glow that must appear on Android is drawn with
+ * `RadialGlow` instead.
+ */
 export const shadows = {
   none: shadow(black, 0, 0, 0),
-  card: shadow(black, 0.35, 10, 4),
-  raised: shadow(black, 0.45, 16, 8),
-  glowPurple: shadow(colors.primary, 0.45, 18, 10),
+  /** Tier 2 — elevated cards and tiles. */
+  card: shadow(black, 0.5, 20, 6),
+  /** Tier 3 — floating docks and sheets. */
+  raised: shadow(black, 0.6, 32, 10),
+  glowPurple: shadow(colors.primaryContainer, 0.45, 20, 10),
 } as const;
 
 export type ShadowTokens = typeof shadows;

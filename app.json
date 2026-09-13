@@ -10,7 +10,10 @@
     "backgroundColor": "#0A0A0D",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.therightpath.app"
+      "bundleIdentifier": "com.therightpath.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "The Right Path uses your location only to calculate accurate prayer times on this device. Your location is never uploaded."
+      }
     },
     "android": {
       "package": "com.therightpath.app",
@@ -20,13 +23,23 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "The Right Path uses your location only to calculate accurate prayer times on this device. Your location is never uploaded."
+        }
+      ]
     ],
     "extra": {
       "displayNameArabic": "الطريق المستقيم"

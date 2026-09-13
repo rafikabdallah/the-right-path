@@ -12,6 +12,8 @@ export const spacing = {
   xl: 24,
   xxl: 32,
   xxxl: 48,
+  /** Outer canvas margin (DESIGN.md: 1.25rem). Use for screen edges. */
+  gutter: 20,
 } as const;
 
 export type SpacingTokens = typeof spacing;

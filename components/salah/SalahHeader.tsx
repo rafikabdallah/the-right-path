@@ -1,55 +1,49 @@
-import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
+import { useState } from 'react';
+import { StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 
-import { colors, letterSpacings, spacing, textStyles } from '@/constants/theme';
+import { RadialGlow } from '@/components/ui/RadialGlow';
+import { colors, letterSpacings, radii, spacing, textStyles } from '@/constants/theme';
 import { salahAyah } from '@/data/salah';
 
-const GLOW_HEIGHT = 340;
-/** How far the glow runs past each screen edge, so it has no visible end. */
-const GLOW_BLEED = spacing.xxxl;
-
 /**
- * Screen title and ayah, sitting directly on the background — deliberately
- * not in a card.
+ * The ayah card. The screen title is owned by AppHeader.
  *
- * The purple behind it is atmosphere, not a panel: a radial gradient that
- * fades to fully transparent well before the edges, so it reads as light in
- * the dark rather than a surface. react-native-svg is already a dependency
- * (lucide uses it), so this needs no new library and gives a true smooth
- * falloff instead of stacked translucent discs.
+ * The ayah sits on a featured purple surface — the same visual weight as
+ * the Quick Review card on the Spiritual home screen — so it reads as the
+ * screen's opening statement rather than as loose text. Depth comes from a
+ * drawn radial glow inside the card, not from a gradient fill.
  */
 export function SalahHeader() {
-  const { width } = useWindowDimensions();
-  // Explicit pixel dimensions rather than percentages, so the gradient's
-  // viewport never depends on how the SVG happens to be measured.
-  const glowWidth = width + GLOW_BLEED * 2;
-  const glowLeft = (width - spacing.lg * 2 - glowWidth) / 2;
+  const [cardSize, setCardSize] = useState({ width: 0, height: 0 });
+
+  const handleLayout = (event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout;
+    setCardSize((previous) =>
+      previous.width === width && previous.height === height ? previous : { width, height }
+    );
+  };
 
   return (
     <View style={styles.container}>
-      <Svg
-        width={glowWidth}
-        height={GLOW_HEIGHT}
-        style={[styles.glow, { left: glowLeft }]}
-        pointerEvents="none"
-      >
-        <Defs>
-          <RadialGradient id="salahGlow" cx="50%" cy="30%" rx="72%" ry="62%">
-            <Stop offset="0" stopColor={colors.primary} stopOpacity="0.20" />
-            <Stop offset="0.5" stopColor={colors.primary} stopOpacity="0.07" />
-            <Stop offset="1" stopColor={colors.primary} stopOpacity="0" />
-          </RadialGradient>
-        </Defs>
-        <Rect x={0} y={0} width={glowWidth} height={GLOW_HEIGHT} fill="url(#salahGlow)" />
-      </Svg>
+      <View style={styles.card} onLayout={handleLayout}>
+        {cardSize.width > 0 ? (
+          <RadialGlow
+            width={cardSize.width}
+            height={cardSize.height}
+            cy="18%"
+            intensity={0.12}
+            style={styles.glow}
+          />
+        ) : null}
 
-      <Text style={styles.title}>SALAH</Text>
+        {/* Padding lives on the inner view so the glow anchors to the card's
+            true origin — absolute children resolve against the padding box. */}
+        <View style={styles.cardContent}>
+          <Text style={styles.ayah}>{salahAyah.arabic}</Text>
 
-      <Text style={styles.ayah}>{salahAyah.arabic}</Text>
-
-      <View style={styles.attribution}>
-        <Text style={styles.translation}>{salahAyah.translation}</Text>
-        <Text style={styles.reference}>{salahAyah.reference}</Text>
+            <Text style={styles.translation}>{salahAyah.translation}</Text>
+          <Text style={styles.reference}>{salahAyah.reference}</Text>
+        </View>
       </View>
     </View>
   );
@@ -58,39 +52,40 @@ export function SalahHeader() {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.xxl,
-    gap: spacing.lg,
+  },
+  card: {
+    alignSelf: 'stretch',
+    backgroundColor: colors.glass,
+    borderWidth: 1,
+    borderColor: colors.borderPurpleSoft,
+    borderRadius: radii.lg,
+    overflow: 'hidden',
   },
   glow: {
-    position: 'absolute',
-    top: -spacing.xxl,
+    top: 0,
+    left: 0,
   },
-  title: {
-    ...textStyles.heading,
-    color: colors.textPrimary,
-    letterSpacing: letterSpacings.widest,
+  cardContent: {
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   ayah: {
-    ...textStyles.ayah,
+    fontSize: 21,
+    lineHeight: 40,
     color: colors.textPrimary,
     textAlign: 'center',
     writingDirection: 'rtl',
-    paddingHorizontal: spacing.sm,
-  },
-  attribution: {
-    alignItems: 'center',
-    gap: spacing.xs,
   },
   translation: {
-    ...textStyles.caption,
+    ...textStyles.bodySm,
     color: colors.textSecondary,
     textAlign: 'center',
-    paddingHorizontal: spacing.md,
   },
   reference: {
-    ...textStyles.label,
-    color: colors.textMuted,
+    ...textStyles.labelSm,
+    color: colors.primaryLight,
     letterSpacing: letterSpacings.tight,
   },
 });

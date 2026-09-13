@@ -1,24 +1,27 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Check, Clock, House, Landmark, MapPin, User, Users, X } from 'lucide-react-native';
 
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { OptionGroup, type Option } from '@/components/ui/OptionGroup';
-import { spacing } from '@/constants/theme';
+import { colors, spacing, textStyles } from '@/constants/theme';
 import type {
-  PrayerCompany,
+  PrayerCongregation,
   PrayerPlace,
-  PrayerRecord,
   PrayerStatus,
   PrayerTiming,
-} from '@/data/salah';
+} from '@/repositories/prayerRepository';
+import { formatTime } from '@/services/dates';
 
-const STATUS_OPTIONS: Option<PrayerStatus>[] = [
+/** The sheet only offers the two states a person can assert about today. */
+type SheetStatus = Extract<PrayerStatus, 'prayed' | 'pending'>;
+
+const STATUS_OPTIONS: Option<SheetStatus>[] = [
   { value: 'prayed', label: 'Prayed', icon: Check },
-  { value: 'not-prayed', label: 'Not prayed', icon: X },
+  { value: 'pending', label: 'Not prayed', icon: X },
 ];
 
 const TIMING_OPTIONS: Option<PrayerTiming>[] = [
-  { value: 'on-time', label: 'On time', icon: Check },
+  { value: 'on_time', label: 'On time', icon: Check },
   { value: 'late', label: 'Late', icon: Clock },
 ];
 
@@ -28,57 +31,82 @@ const PLACE_OPTIONS: Option<PrayerPlace>[] = [
   { value: 'other', label: 'Other', icon: MapPin },
 ];
 
-const COMPANY_OPTIONS: Option<PrayerCompany>[] = [
+const CONGREGATION_OPTIONS: Option<PrayerCongregation>[] = [
   { value: 'congregation', label: 'Congregation', icon: Users },
   { value: 'alone', label: 'Alone', icon: User },
 ];
 
+export interface PrayerDetailValue {
+  status: SheetStatus;
+  timing: PrayerTiming | null;
+  place: PrayerPlace | null;
+  congregation: PrayerCongregation | null;
+}
+
 interface PrayerDetailSheetProps {
   visible: boolean;
   name: string;
-  record: PrayerRecord;
-  onChange: (record: PrayerRecord) => void;
+  /** Calculated time, shown for context. */
+  scheduledTime?: string;
+  /** ISO instant the prayer was actually marked, if it was. */
+  completedAt: string | null;
+  timeZone: string;
+  value: PrayerDetailValue;
+  onChange: (value: PrayerDetailValue) => void;
   onClose: () => void;
 }
 
 /**
  * Tap-a-prayer detail sheet: the considered counterpart to the row's swipe.
- * One choice per line, nothing else — the same component serves all five
- * prayers.
+ *
+ * Every answer is persisted against the prayer's record and later feeds
+ * Prayer Review, so this is data entry, not decoration. The app does not
+ * infer any of it — "late" is stored because the user said so.
  */
 export function PrayerDetailSheet({
   visible,
   name,
-  record,
+  scheduledTime,
+  completedAt,
+  timeZone,
+  value,
   onChange,
   onClose,
 }: PrayerDetailSheetProps) {
+  const marked = completedAt ? formatTime(new Date(completedAt), timeZone) : null;
+
   return (
     <BottomSheet visible={visible} title={name} onClose={onClose}>
       <View style={styles.groups}>
+        {scheduledTime ? (
+          <Text style={styles.context}>
+            {marked ? `Due ${scheduledTime} · Marked ${marked}` : `Due ${scheduledTime}`}
+          </Text>
+        ) : null}
+
         <OptionGroup
           label="Status"
           options={STATUS_OPTIONS}
-          selected={record.status}
-          onSelect={(status) => onChange({ ...record, status })}
+          selected={value.status}
+          onSelect={(status) => onChange({ ...value, status })}
         />
         <OptionGroup
           label="Timing"
           options={TIMING_OPTIONS}
-          selected={record.timing}
-          onSelect={(timing) => onChange({ ...record, timing })}
+          selected={value.timing ?? 'on_time'}
+          onSelect={(timing) => onChange({ ...value, timing })}
         />
         <OptionGroup
           label="Place"
           options={PLACE_OPTIONS}
-          selected={record.place}
-          onSelect={(place) => onChange({ ...record, place })}
+          selected={value.place ?? 'masjid'}
+          onSelect={(place) => onChange({ ...value, place })}
         />
         <OptionGroup
           label="Congregation"
-          options={COMPANY_OPTIONS}
-          selected={record.company}
-          onSelect={(company) => onChange({ ...record, company })}
+          options={CONGREGATION_OPTIONS}
+          selected={value.congregation ?? 'congregation'}
+          onSelect={(congregation) => onChange({ ...value, congregation })}
         />
       </View>
     </BottomSheet>
@@ -88,5 +116,10 @@ export function PrayerDetailSheet({
 const styles = StyleSheet.create({
   groups: {
     gap: spacing.xl,
+  },
+  context: {
+    ...textStyles.bodySm,
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
 });
